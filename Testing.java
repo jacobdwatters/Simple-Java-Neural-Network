@@ -13,15 +13,17 @@ import java.text.DecimalFormat;
  */
 public class Testing {
 	public static void main(String[] args) {
-		 runTest1();
+		// runTest1();
 		// runTest2();
 		// runTest3();
-		// runTest4();
+		runTest4();
 	}
 	
 	
 	/**
 	 * This test trains a network with 2 layers (1 hidden layer and an output)
+	 * 
+	 * This is the minimum possible layers to solve the XOR problem as it is not linearly seprable.
 	 */
 	public static void runTest1() {
 		int hiddenShape = 20, hiddenLayers = 1, inputShape = 2, outputShape = 1, batchSize = 4, epochs = 100000;	
@@ -168,7 +170,7 @@ class SimpleNeuralNetwork {
 	
 	boolean trained = false;
 	
-	private double learningRate 	= 0.1; 	// Learning rate of network
+	private double learningRate = 0.1; 	// Learning rate of network
 	private int epochs 			= 0;		// Iterations to train network
 	private int batchSize		= 1;		// Number of samples to process before updating weights
 	private int hiddenShape;				// Number of hidden layers
@@ -176,35 +178,39 @@ class SimpleNeuralNetwork {
 	private double[] 		lossPerEpoch;	/* A list of losses by epoch where the loss at a given index is the loss
 											   for epoch index+1 i*/
 	private double[][][] 	predictions;		// A list of model predictions by epoch
-	private double[][][]		targetMatrix;	// Holds Target values converted to a list of matrices
+	private double[][][]	targetMatrix;	// Holds Target values converted to a list of matrices
 	
-	private double[][]		inputValues;		// Current input node Values
-	private double[][][] 	hiddenValues; 	// Current hidden node values (Used when more than one hidden layer)
+	private double[][]		inputValues;	// Current input node Values
+	private double[][][] 	hiddenValues; 	// Current hidden node values (Used for more than one hidden layer)
 	private double[][] 		outputValues;	// Current output values
 	
 	private double[][] 		input2HiddenWeights;		// weights between inputs and hidden layer
-	private double[][][]		hiddenWeights;			// weights between hidden Layers (currently not used)
-	private double[][] 		hidden2OutputWeights;	// weights between hidden and output layer
+	private double[][][]	hiddenWeights;				// weights between hidden Layers
+	private double[][] 		hidden2OutputWeights;		// weights between hidden and output layer
 	private double[][]		input2OutputWeights;		// weight updates between input and output layer (for single layer network)
 	
 	private double[][] 		deltaInput2HiddenWeights;	// weight updates between inputs and hidden layer
-	private double[][][]		deltaHiddenWeights;			// weight updates between hidden Layers (currently not used)
+	private double[][][]	deltaHiddenWeights;			// weight updates between hidden Layers (currently not used)
 	private double[][] 		deltaHidden2OutputWeights;	// weight updates between hidden and output layers
 	private double[][]		deltaInput2OutputWeights;	// weight updates between input and output layer (for single layer network)
 	
 	
 	/**
-	 * Declares a network with the given shapes
+	 * Declares a network with the given shapes.
+	 * 
+	 * <p>
+	 * Please note, this class only supports hidden layers which all have the same number of nodes.
+	 * </p>
 	 * 
 	 * @param hiddenShape - number of nodes in layer
-	 * @param hiddenLayers - number of hiddenLayers (Currently only supports 0 or 1)
+	 * @param hiddenLayers - number of hiddenLayers
 	 * @param inputShape - number of nodes in input layer
 	 * @param outputShape - number of nodes in output layer
 	 */
 	public SimpleNeuralNetwork(int hiddenShape, int hiddenLayers, int inputShape, int outputShape) {
-		this.inputValues		= new double[inputShape	][1];
+		this.inputValues	= new double[inputShape	][1];
 		this.outputValues 	= new double[outputShape][1];
-		this.hiddenShape = hiddenShape;
+		this.hiddenShape 	= hiddenShape;
 		
 		
 		if(hiddenShape == 0) {
@@ -231,7 +237,7 @@ class SimpleNeuralNetwork {
 	 * @param outputShape - number of nodes in output layer
 	 */
 	public SimpleNeuralNetwork(int inputShape, int outputShape) {
-		this.inputValues		= new double[inputShape ][1];
+		this.inputValues	= new double[inputShape ][1];
 		this.outputValues 	= new double[outputShape][1];
 		this.hiddenShape 	= 0;
 		
@@ -245,7 +251,7 @@ class SimpleNeuralNetwork {
 	 * 
 	 * @param epochs - number of training epochs
 	 * @param batchsize - number of samples to process before updating weights
-	 * @param learningRate - 
+	 * @param learningRate - learning rate to be used in gradient descent
 	 */
 	public void compile(int epochs, int batchsize, double learningRate) {
 		if(epochs <= 0) {
@@ -262,7 +268,7 @@ class SimpleNeuralNetwork {
 		}
 		
 		this.lossPerEpoch 	= new double[epochs];
-		this.epochs 			= epochs;
+		this.epochs 		= epochs;
 		this.batchSize 		= batchsize;
 		this.learningRate 	= learningRate;
 		initializeWeights();
@@ -271,6 +277,11 @@ class SimpleNeuralNetwork {
 	
 	/**
 	 * Prepares network for training
+	 * 
+	 * <p>
+	 * Learning rate will have default value of 0.1. If you would like to set your own learning rate 
+	 * use <code> compile(int epochs, int batchsize, double learningRate) </code>
+	 * </p>
 	 * 
 	 * @param epochs - number of training epochs
 	 * @param batchsize - number of samples to process before updating weights
@@ -285,15 +296,21 @@ class SimpleNeuralNetwork {
 					+ "Recieved " + batchSize);
 		}
 		
-		this.lossPerEpoch = new double[epochs];
-		this.epochs 	= epochs;
-		this.batchSize 	= batchsize;
+		this.lossPerEpoch 	= new double[epochs];
+		this.epochs 		= epochs;
+		this.batchSize 		= batchsize;
 		initializeWeights();
 	}
 	
 	
 	/**
 	 * Prepares network for training
+	 * 
+	 * <p>
+	 * Learning rate will have default value of 0.1 and batchsize will have default value of 1. If you would like to set your own learning rate / batchsize 
+	 * use <code> compile(int epochs, int batchsize, double learningRate) </code> or 
+	 * <code> compile(int epochs, int batchsize) </code>
+	 * </p>
 	 * 
 	 * @param epochs - number of training epochs
 	 */
@@ -367,7 +384,7 @@ class SimpleNeuralNetwork {
 	 * @return computed output values 
 	 * @throws Exception 
 	 */
-	public double[][] feedForward() throws Exception {	
+	private double[][] feedForward() throws Exception {	
 		if(hiddenShape > 0) {
 			// Calculate values in first hidden layer
 			hiddenValues[0] = sigmoid(Matrix.multiply(input2HiddenWeights,	inputValues ));
@@ -394,7 +411,7 @@ class SimpleNeuralNetwork {
 	 * @param currentTarget - target that matches the sample being currently worked on
 	 * @throws Exception 
 	 */
-	public void backPropagate(double[][] currentTarget) throws Exception {
+	private void backPropagate(double[][] currentTarget) throws Exception {
 		double[][] error = Matrix.subtract(currentTarget, outputValues);	// Error of output layer
 		double[][] hiddenError;
 		
@@ -474,10 +491,11 @@ class SimpleNeuralNetwork {
 	
 	
 	/**
-	 * Make prediction on trained model
+	 * Make prediction for a sample on trained model
 	 * 
-	 * @param sample
-	 * @return
+	 * 
+	 * @param sample - sample to make prediction on
+	 * @return - prediction for the given sample
 	 * @throws Exception
 	 */
 	public double[][] predict(double[] sample) throws Exception {
@@ -586,8 +604,6 @@ class SimpleNeuralNetwork {
 	/**
 	 * Computes sigmoid output for all elements in A
 	 * 
-	 * TODO: If sigmoid receives Infinity return 1, if negative infinity return 0
-	 * 
 	 * @param A - mxn matrix
 	 * @return an mxn matrix containing sigmoid outputs
 	 */
@@ -597,9 +613,9 @@ class SimpleNeuralNetwork {
 		for(int i = 0; i < A.length; i++) {
 			for(int j = 0; j < A[0].length; j++) {
 				if(A[i][j] == Double.POSITIVE_INFINITY) {
-					
+					result[i][j] = 1;
 				} else if(A[i][j] == Double.NEGATIVE_INFINITY) {
-					
+					result[i][j] = 0;
 				} else {	
 					result[i][j] = Math.pow(1+Math.exp(-A[i][j]), -1);
 				}
@@ -715,7 +731,7 @@ class Matrix {
 	
 	
 	/**
-	 * computes a-b element-wise
+	 * computes a minus b element-wise
 	 * 
 	 * @param a
 	 * @param b
